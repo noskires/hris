@@ -1,0 +1,179 @@
+SELECT CASE WHEN sector_code !=99999999
+THEN sector_code
+WHEN center_code !=99999999
+THEN center_code
+ELSE div_code
+END AS second_level,
+
+CASE WHEN center_code !=99999999
+THEN center_code 
+ELSE div_code
+END AS third_level,
+
+div_code as fourth_level
+
+FROM emp_data
+WHERE group_code =50020882
+GROUP BY second_level
+LIMIT 0 , 30
+
+ 
+SELECT 
+
+CASE WHEN sector_code !=99999999
+THEN sector_code
+WHEN center_code !=99999999
+THEN center_code
+ELSE div_code
+END AS second_level, 
+
+CASE WHEN sector_code !=99999999
+THEN sector_txt
+WHEN center_code !=99999999
+THEN center_txt
+ELSE div_txt
+END AS second_level_txt, 
+
+CASE WHEN sector_code !=99999999  and center_code !=99999999 
+THEN div_code
+ELSE div_code
+END AS third_level, 
+
+CASE WHEN center_code !=99999999
+THEN center_txt
+ELSE div_txt
+END AS third_level_txt, 
+
+div_code AS fourth_level, 
+div_txt AS fourth_level_txt
+
+FROM emp_data
+WHERE group_code =50020882
+GROUP BY second_level, third_level, fourth_level
+LIMIT 0 , 30
+
+
+
+
+SELECT 
+group_code as first_level,
+group_txt as first_level_txt,
+
+CASE WHEN sector_code !=99999999
+THEN sector_code
+WHEN center_code !=99999999
+THEN center_code
+ELSE div_code
+END AS second_level, 
+
+CASE WHEN sector_code !=99999999
+THEN sector_txt
+WHEN center_code !=99999999
+THEN center_txt
+ELSE div_txt
+END AS second_level_txt, 
+
+CASE WHEN sector_code !=99999999
+AND center_code !=99999999
+THEN center_code
+ELSE div_code
+END AS third_level, 
+
+CASE WHEN sector_code !=99999999
+AND center_code !=99999999
+THEN center_txt
+ELSE div_txt
+END AS third_level_txt, 
+
+CASE WHEN sector_code !=99999999
+AND center_code !=99999999
+AND div_code !=99999999
+THEN div_code
+ELSE  ''
+END AS fourth_level, 
+
+CASE WHEN sector_code !=99999999
+AND center_code !=99999999
+AND div_code !=99999999
+THEN div_txt
+ELSE  ''
+END AS fourth_level_txt
+FROM emp_data
+WHERE group_code =50020882
+
+GROUP BY second_level, third_level, fourth_level 
+
+SELECT COUNT( emp_id ) AS cnt, emp_data.emp_subgroup
+FROM emp_data
+WHERE CASE WHEN emp_data.sector_code !=99999999
+THEN emp_data.sector_code =50385137
+OR emp_data.center_code =50385137
+OR emp_data.div_code =50385137
+ELSE emp_data.sector_code =50385137
+OR emp_data.center_code =50385137
+OR emp_data.div_code =50385137
+END GROUP BY emp_subgroup
+
+
+Age computation
+SELECT emp_id, TIMESTAMPDIFF(YEAR,date_birth,CURDATE()) as age,  datediff(curdate(),date_hired) / 365.25 as los FROM `emp_data` 
+
+
+age groupings
+
+SELECT  emp_subgroup, count(*),
+	CASE 
+		WHEN age BETWEEN 20 and 24 THEN '20 to 24'
+		WHEN age BETWEEN 25 and 29 THEN '25 to 29'
+		WHEN age BETWEEN 30 and 34 THEN '30 to 34'
+		WHEN age BETWEEN 35 and 39 THEN '35 to 39'
+		WHEN age BETWEEN 40 and 44 THEN '40 to 44'
+		WHEN age BETWEEN 45 and 49 THEN '45 to 49'
+		WHEN age BETWEEN 50 and 54 THEN '50 to 54'
+		WHEN age BETWEEN 55 and 59 THEN '55 to 59' 
+		WHEN age >= 60 THEN '> 60' END AS agegroup
+FROM get_age_los1  group by agegroup, emp_subgroup
+
+
+
+SELECT  emp_subgroup, count(*) as cnt, los, 
+	CASE 
+		WHEN los <1 THEN '< 1' 
+		WHEN los >= 1 and los <= 4 THEN '1 - 4' 
+		WHEN los > 4 and los <= 9 THEN '5 - 9' 
+		WHEN los > 9 and los <= 14 THEN '10 - 14' 
+		WHEN los > 14 and los <= 19 THEN '15 - 19' 
+		WHEN los > 19 and los <= 24 THEN '20 - 24' 
+		WHEN los > 24 and los <= 29 THEN '25 - 29' 
+		WHEN los > 29 and los <= 34 THEN '30 - 24' 
+		WHEN los > 34 and los <= 39 THEN '35 - 39' 
+		WHEN los > 39 THEN '> 40' END AS los_group 
+FROM get_age_los1  group by los_group, emp_subgroup ORDER BY `get_age_los1`.`los`
+
+
+
+create view get_age_los_loc as SELECT emp_id, emp_group, emp_subgroup, personnel_area, personnel_subarea, TIMESTAMPDIFF(YEAR,date_birth,CURDATE()) as age,  
+datediff(curdate(),date_hired) / 365.25 as los FROM `emp_data` 
+
+// per personnel area
+SELECT COUNT( * ) AS cnt, personnel_area
+FROM  `get_age_los_loc` 
+GROUP BY personnel_area
+
+
+// per personnel area, emp subgroup
+SELECT COUNT( * ) AS cnt, personnel_area, emp_subgroup
+FROM  `get_age_los_loc` 
+GROUP BY personnel_area, emp_subgroup
+
+SELECT count(*) as cnt, personnel_area, emp_subgroup, CASE 
+		WHEN age BETWEEN 20 and 24 THEN '20 to 24'
+		WHEN age BETWEEN 25 and 29 THEN '25 to 29'
+		WHEN age BETWEEN 30 and 34 THEN '30 to 34'
+		WHEN age BETWEEN 35 and 39 THEN '35 to 39'
+		WHEN age BETWEEN 40 and 44 THEN '40 to 44'
+		WHEN age BETWEEN 45 and 49 THEN '45 to 49'
+		WHEN age BETWEEN 50 and 54 THEN '50 to 54'
+		WHEN age BETWEEN 55 and 59 THEN '55 to 59' 
+		WHEN age >= 60 THEN '> 60' END AS agegroup  FROM `get_age_los_loc` group by personnel_area, emp_subgroup, agegroup 
+
